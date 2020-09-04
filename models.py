@@ -33,6 +33,7 @@ class User(db.Model):
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
+        return user_schema.dump(self)
 
     def update_db(self):
         db.session.commit()
