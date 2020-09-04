@@ -45,13 +45,15 @@ def my_expired_token_callback(expired_token):
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     jti = decrypted_token['jti']
+    print("checking blacklist")
     return models.RevokedTokenModel.is_jti_blacklisted(jti)
 
 
 @jwt.revoked_token_loader
 def revoked_token_response(revoked_token):
-	token_type = revoked_token['type']
+    token_type = revoked_token['type']
     jwtkn = revoked_token['jti']
+    print("checking if token is revoked blacklist")
     return jsonify({
         'status': 401,
         'sub_status': 42,
