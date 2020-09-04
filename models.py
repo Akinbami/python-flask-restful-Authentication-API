@@ -1,7 +1,6 @@
 from flask_migrate import Migrate, MigrateCommand
 from flask_marshmallow import Marshmallow
-from marshmallow_jsonapi import fields
-from marshmallow_jsonapi.flask import Schema, Relationship
+
 from passlib.hash import pbkdf2_sha256 as sha256
 
 from datetime import timedelta, datetime as dt
@@ -34,6 +33,10 @@ class User(db.Model):
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
+
+    def update_db(self):
+        db.session.commit()
+        return user_schema.dump(self)
 
     @classmethod
     def find_by_username(cls, username):
@@ -76,8 +79,7 @@ class RevokedTokenModel(db.Model):
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'username', 'email', 'password')
-    # messages = ma.Nested(MessageSchema)
+        fields = ('id', 'username', "date_registered")
 
 
 
