@@ -72,36 +72,6 @@ class UserLogoutAccess(Resource):
             return {'message': 'Something went wrong'}, 500
         
 
-class UserList(Resource):
-    def get(self):
-        return User.return_all()
-
-class UserDetail(Resource):
-    def get(self, id):
-        abort_if_user_doesnt_exist(id)
-        return User.get_one(id)
-
-    def delete(self, id):
-        abort_if_user_doesnt_exist(id)
-        User.delete_one(id)
-        return '', 204
-
-    def patch(self, id):
-        data = request.get_json()
-        user = User.query.get_or_404(id)
-
-        # updating post
-        if "username" in data:
-            user.username = data['username']
-        if "email" in data:
-            user.email = data['email']
-        if "is_admin" in data:
-            user.is_admin = data['is_admin']
-
-        update_response = user.update_db()
-
-
-        return update_response, 201
 
 # User page authorization
 class SecretResource(Resource):

@@ -12,7 +12,7 @@ from app import app,db
 ma = Marshmallow(app)
 migrate = Migrate(app,db)
 
-
+# Defining user model
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
@@ -62,7 +62,7 @@ class User(db.Model):
         except:
             return {'message': 'Something went wrong'}
 
-
+# Define model to manage revoked tokens
 class RevokedTokenModel(db.Model):
     __tablename__ = 'revoked_tokens'
     id = db.Column(db.Integer, primary_key = True)

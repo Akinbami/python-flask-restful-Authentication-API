@@ -33,8 +33,12 @@ CORS(app)
 
 import models, resources
 
+
 @jwt.expired_token_loader
 def my_expired_token_callback(expired_token):
+	"""
+	This function handles expired tokens requests
+	"""
     token_type = expired_token['type']
     return jsonify({
         'status': 401,
@@ -51,6 +55,9 @@ def check_if_token_in_blacklist(decrypted_token):
 
 @jwt.revoked_token_loader
 def revoked_token_response(revoked_token):
+	"""
+	This function handles request for revoked tokens
+	"""
     token_type = revoked_token['type']
     jwtkn = revoked_token['jti']
     print("checking if token is revoked blacklist")
