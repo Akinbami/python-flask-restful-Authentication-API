@@ -1,4 +1,5 @@
-from flask_restful import Resource,reqparse
+from flask import request,make_response,jsonify
+from flask_restful import Resource,reqparse,abort
 from flask_jwt_extended import (create_access_token, 
                                 create_refresh_token, 
                                 jwt_required, 
@@ -6,103 +7,105 @@ from flask_jwt_extended import (create_access_token,
                                 get_jwt_identity, 
                                 get_raw_jwt
                             )
-from flask_rest_jsonapi import ResourceDetail, ResourceList, ResourceRelationship
-from flask_rest_jsonapi.exceptions import ObjectNotFound
 from sqlalchemy.orm.exc import NoResultFound
 
-from models import *
+from datetime import timedelta, datetime
+import uuid
+import logging
 
-parser = reqparse.RequestParser()
-parser.add_argument('username', help = 'This field cannot be blank', required = False)
-parser.add_argument('password', help = 'This field cannot be blank', required = False)
+from models import User,user_schema
 
+
+def abort_if_user_doesnt_exist(id):
+    user = User.get_one(id)
+    if not user:
+        abort(404, message="User {} doesn't exist".format(id))
 
 class UserRegistration(Resource):
     def post(self):
-        data = parser.parse_args()
-        if User.find_by_username(data['username']):
-          return {'message': 'User {} already exists'. format(data['username'])}
+        data = request.get_json()
+        password = User.generate_hash(data['password'])
+        id = str(uuid.uuid4())
 
-        new_user = User(
-            username = data['username'],
-            password = User.generate_hash(data['password'])
-        )
-        try:
-            new_user.save_to_db()
-            access_token = create_access_token(identity = data['username'])
-            refresh_token = create_refresh_token(identity = data['username'])
-            return {
-                'message': 'User {} was created'.format( data['username']),
-                'access_token': access_token,
-                'refresh_token': refresh_token
-            }
-        except:
-            return {'message': 'Something went wrong'}, 500
+        # creating the user instance
+        new_user = User(id=id,username=data['username'],email=data['email'],is_admin=data['is_admin'],password=password)
+        user = new_user.save_to_db()
 
+        return {"status": "Ok","data":user}
+
+    def get(self):
+        return {'hello': 'world'}
 
 class UserLogin(Resource):
     def post(self):
-        data = parser.parse_args()
-        current_user = User.find_by_username(data['username'])
-        if not current_user:
-            return {'message': 'User {} doesn\'t exist'.format(data['username'])}
-        
-        if User.verify_hash(data['password'], current_user.password):
-            access_token = create_access_token(identity = data['username'])
-            refresh_token = create_refresh_token(identity = data['username'])
+        auth = request.authorization
+        if not auth or not auth.username or not auth.password:
+            return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm="Login Required!'})
+
+        user = User.query.filter_by(username=auth.username).first()
+        if not user:
+            return make_response("Could not verify", 401, {'WWW-Authenticate': 'Basic realm="Login Required!'})
+
+        verify_user = User.verify_hash(auth.password,user.password)
+        if verify_user:
+            expires = timedelta(days=7)
+            access_token = create_access_token(identity = auth.username,expires_delta=expires)
+            refresh_token = create_refresh_token(identity = auth.username)
             return {
-                'message': 'Logged in as {}'.format(current_user.username),
+                'status': verify_user,
+                'message': 'Logged in as {}'.format(user.username),
                 'access_token': access_token,
                 'refresh_token': refresh_token
                 }
         else:
-            return {'message': 'Wrong credentials'}
-      
-      
-class UserLogoutAccess(Resource):
+            return {'message': 'Wrong credentials',"status": verify_user}
+
+        
+    def get(self):
+        return {'hello': 'world'}
+class UserLogout(Resource):
     @jwt_required
-    def post(self):
+    def delete(self):
         jti = get_raw_jwt()['jti']
-        try:
-            revoked_token = RevokedTokenModel(jti = jti)
-            revoked_token.add()
-            return {'message': 'Access token has been revoked'}
-        except:
-            return {'message': 'Something went wrong'}, 500
+        blacklist.add(jti)
+        return jsonify({"msg": "Successfully logged out"}), 200
 
-
-class UserLogoutRefresh(Resource):
-    @jwt_refresh_token_required
-    def post(self):
-        jti = get_raw_jwt()['jti']
-        try:
-            revoked_token = RevokedTokenModel(jti = jti)
-            revoked_token.add()
-            return {'message': 'Refresh token has been revoked'}
-        except:
-            return {'message': 'Something went wrong'}, 500
-      
-      
-class TokenRefresh(Resource):
-    @jwt_refresh_token_required
-    def post(self):
-        current_user = get_jwt_identity()
-        access_token = create_access_token(identity = current_user)
-        return {'access_token': access_token}
-      
-      
-class AllUsers(Resource):
+class UserList(Resource):
     def get(self):
         return User.return_all()
-    
-    def delete(self):
-        return User.delete_all()
-    
-      
-      
+
+class UserDetail(Resource):
+    def get(self, id):
+        abort_if_user_doesnt_exist(id)
+        return User.get_one(id)
+
+    def delete(self, id):
+        abort_if_user_doesnt_exist(id)
+        User.delete_one(id)
+        return '', 204
+
+    def patch(self, id):
+        data = request.get_json()
+        user = User.query.get_or_404(id)
+
+        # updating post
+        if "username" in data:
+            user.username = data['username']
+        if "email" in data:
+            user.email = data['email']
+        if "is_admin" in data:
+            user.is_admin = data['is_admin']
+
+        update_response = user.update_db()
+
+
+        return update_response, 201
+
+# User page authorization
 class SecretResource(Resource):
     @jwt_required
     def get(self):
         return {
-            'answer': 42
+            'valid': True
         }
+ 

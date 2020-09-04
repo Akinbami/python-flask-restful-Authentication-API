@@ -25,22 +25,31 @@ jwt = JWTManager(app)
 
 CORS(app)
 
+# Using the expired_token_loader decorator, we will now call
+# this function whenever an expired but otherwise valid access
+# token attempts to access an endpoint
+
 import views, models, resources
 
-
+@jwt.expired_token_loader
+def my_expired_token_callback(expired_token):
+    token_type = expired_token['type']
+    return jsonify({
+        'status': 401,
+        'sub_status': 42,
+        'msg': 'The {} token has expired'.format(token_type)
+    }), 401
+    
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     jti = decrypted_token['jti']
     return models.RevokedTokenModel.is_jti_blacklisted(jti)
 
-api.add_resource(resources.UserRegistration, '/api/registration')
+api.add_resource(resources.UserRegistration, '/api/register')
 api.add_resource(resources.UserLogin, '/api/login')
-api.add_resource(resources.UserLogoutAccess, '/api/logout/access')
-api.add_resource(resources.UserLogoutRefresh, '/api/logout/refresh')
-api.add_resource(resources.TokenRefresh, '/api/token/refresh')
-api.add_resource(resources.AllUsers, '/api/users')
+api.add_resource(resources.UserList, '/api/users')
+api.add_resource(resources.UserDetail, '/api/users/<public_id>')
 api.add_resource(resources.SecretResource, '/api/secret')
-
 
 
 
