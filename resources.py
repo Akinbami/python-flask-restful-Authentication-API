@@ -59,9 +59,7 @@ class UserLogin(Resource):
         else:
             return {'message': 'Wrong credentials',"status": verify_user}
 
-        
-    def get(self):
-        return {'hello': 'world'}
+     
 class UserLogout(Resource):
     @jwt_required
     def delete(self):
