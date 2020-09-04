@@ -60,14 +60,18 @@ def revoked_token_response(revoked_token):
         'msg': 'The {} token has expired'.format(token_type)
     }), 401
 
+
+# endpoints
+
 api.add_resource(resources.UserRegistration, '/api/register')
 api.add_resource(resources.UserLogin, '/api/login')
 api.add_resource(resources.UserLogoutAccess, '/api/logout/access')
+api.add_resource(resources.SecretResource, '/api/secret')
+
 # api.add_resource(resources.UserLogoutRefresh, '/api/logout/refresh')
 # api.add_resource(resources.TokenRefresh, '/api/token/refresh')
-api.add_resource(resources.UserList, '/api/users')
-api.add_resource(resources.UserDetail, '/api/users/<public_id>')
-api.add_resource(resources.SecretResource, '/api/secret')
+# api.add_resource(resources.UserList, '/api/users')
+# api.add_resource(resources.UserDetail, '/api/users/<public_id>')
 
 
 
