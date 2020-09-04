@@ -47,6 +47,17 @@ def check_if_token_in_blacklist(decrypted_token):
     jti = decrypted_token['jti']
     return models.RevokedTokenModel.is_jti_blacklisted(jti)
 
+
+@jwt.revoked_token_loader
+def revoked_token_response(revoked_token):
+	token_type = revoked_token['type']
+    jwtkn = revoked_token['jti']
+    return jsonify({
+        'status': 401,
+        'sub_status': 42,
+        'msg': 'The {} token has expired'.format(token_type)
+    }), 401
+
 api.add_resource(resources.UserRegistration, '/api/register')
 api.add_resource(resources.UserLogin, '/api/login')
 api.add_resource(resources.UserLogoutAccess, '/api/logout/access')

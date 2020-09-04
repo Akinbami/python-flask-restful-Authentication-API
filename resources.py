@@ -13,7 +13,7 @@ from datetime import timedelta, datetime
 import uuid
 import logging
 
-from models import User,user_schema
+from models import User,user_schema,RevokedTokenModel
 
 
 def abort_if_user_doesnt_exist(id):
@@ -64,8 +64,13 @@ class UserLogoutAccess(Resource):
     @jwt_required
     def delete(self):
         jti = get_raw_jwt()['jti']
-        blacklist.add(jti)
-        return jsonify({"msg": "Successfully logged out"}), 200
+        try:
+            revoked_token = RevokedTokenModel(jti = jti)
+            revoked_token.add()
+            return {'message': 'Access token has been revoked'}
+        except:
+            return {'message': 'Something went wrong'}, 500
+        
 
 class UserList(Resource):
     def get(self):
