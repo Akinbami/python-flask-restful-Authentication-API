@@ -13,8 +13,8 @@ import json
 
 app = Flask(__name__)
 api = Api(app)
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://smartpy:Smartpy2020@smartpy-db.cerkzqsx9z8g.us-east-2.rds.amazonaws.com/mshub"
-app.config["JWT_SECRET_KEY"] = "my-secret"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root@localhost:3306/flask_auth"
+app.config["JWT_SECRET_KEY"] = "gfhjvbknmkkhbjghfgchgjbk637uhgfsghj2iuj"
 app.config['JWT_BLACKLIST_ENABLED'] = True
 app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
 # app.config["JWT_ACCESS_TOKEN_EXPIRES"] = dt.now() + timedelta(days = 1)
