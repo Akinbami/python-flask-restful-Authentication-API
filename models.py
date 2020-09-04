@@ -17,7 +17,7 @@ class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True)
-    password = db.Column(db.String(50))
+    password = db.Column(db.String(500))
     date_registered = db.Column(db.DateTime, nullable=False, default=str(dt.today()))
     date_updated = db.Column(db.DateTime, nullable=False, default=str(dt.today()))
 

@@ -25,10 +25,9 @@ class UserRegistration(Resource):
     def post(self):
         data = request.get_json()
         password = User.generate_hash(data['password'])
-        id = str(uuid.uuid4())
 
         # creating the user instance
-        new_user = User(id=id,username=data['username'],email=data['email'],is_admin=data['is_admin'],password=password)
+        new_user = User(username=data['username'],password=password)
         user = new_user.save_to_db()
 
         return {"status": "Ok","data":user}

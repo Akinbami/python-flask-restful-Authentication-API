@@ -3,6 +3,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 
 
@@ -20,6 +21,7 @@ app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
 # app.config['JWT_EXPIRATION_DELTA'] = timedelta(days=1)
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
 
@@ -29,7 +31,7 @@ CORS(app)
 # this function whenever an expired but otherwise valid access
 # token attempts to access an endpoint
 
-import views, models, resources
+import models, resources
 
 @jwt.expired_token_loader
 def my_expired_token_callback(expired_token):
