@@ -60,7 +60,7 @@ class UserLogin(Resource):
             return {'message': 'Wrong credentials',"status": verify_user}
 
      
-class UserLogout(Resource):
+class UserLogoutAccess(Resource):
     @jwt_required
     def delete(self):
         jti = get_raw_jwt()['jti']
